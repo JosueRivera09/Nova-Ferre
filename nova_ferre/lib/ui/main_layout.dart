@@ -1,10 +1,5 @@
 import 'package:nova_ferre/nova_ferre_exports.dart';
 
-// Importaremos tus vistas aquí (por ahora usaremos Placeholders)
-// import 'views/sales/sales_view.dart';
-// import 'views/inventory/inventory_view.dart';
-// ...
-
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
 
@@ -13,27 +8,27 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  // 1. El "cerebro" de la navegación
-  int _currentIndex = 0;
-
-  // 2. Lista de nombres para el título dinámico
+  // 1. Lista de nombres para el título dinámico
   final List<String> _viewNames = [
-    'Ventas y Facturación',
-    'Gestión de Inventario',
-    'Logística y Entregas',
-    'Panel de Control Gerencial',
+    'Ventas',
+    'Inventario',
+    'Logística',
+    'Dashboard',
   ];
 
-  // 3. Las pantallas que se mostrarán (Placeholder por ahora)
+  // dirección de las vistas (orden debe coincidir con los botones de navegación)
   final List<Widget> _views = [
-    const Center(child: Text("Pantalla de Ventas")),
-    const Center(child: Text("Pantalla de Inventario")),
-    const Center(child: Text("Pantalla de Logística")),
-    const Center(child: Text("Pantalla de Dashboard")),
+    const SalesView(),
+    const InventoryView(),
+    const LogisticsView(),
+    const DashboardView(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final navProvider = context.watch<NavigationProvider>();
+    final isDesktop = MediaQuery.of(context).size.width >= 800;
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 70,
@@ -48,18 +43,28 @@ class _MainLayoutState extends State<MainLayout> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Nova Ferre",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: "Montserrat",
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
-                    letterSpacing: 1.2,
+                RichText(
+                  text: TextSpan(
+                    text: "Nova",
+                    style: const TextStyle(
+                      fontSize: 25,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: " Ferre",
+                        style: const TextStyle(
+                          fontSize: 25,
+                          color: Color.fromARGB(255, 230, 104, 60),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Text(
-                  "Sección: ${_viewNames[_currentIndex]}",
+                  " ${_viewNames[navProvider.currentIndex]}",
                   style: const TextStyle(
                     fontSize: 13,
                     color: Color.fromARGB(255, 182, 178, 178),
@@ -72,39 +77,100 @@ class _MainLayoutState extends State<MainLayout> {
         ),
 
         // --- PARTE DERECHA: BOTONES DE NAVEGACIÓN ---
-        actions: [
-          _buildNavButton(0, "Ventas", Icons.shopping_cart_outlined),
-          _buildNavButton(1, "Inventario", Icons.inventory_2_outlined),
-          _buildNavButton(2, "Logística", Icons.local_shipping_outlined),
-          _buildNavButton(3, "Dashboard", Icons.analytics_outlined),
-          const SizedBox(width: 20),
-        ],
+        actions: isDesktop
+            ? [
+                _buildNavButton(
+                  context,
+                  0,
+                  "Ventas",
+                  Icons.shopping_cart_outlined,
+                  navProvider.currentIndex,
+                ),
+                _buildNavButton(
+                  context,
+                  1,
+                  "Inventario",
+                  Icons.inventory_2_outlined,
+                  navProvider.currentIndex,
+                ),
+                _buildNavButton(
+                  context,
+                  2,
+                  "Logística",
+                  Icons.local_shipping_outlined,
+                  navProvider.currentIndex,
+                ),
+                _buildNavButton(
+                  context,
+                  3,
+                  "Dashboard",
+                  Icons.analytics_outlined,
+                  navProvider.currentIndex,
+                ),
+                const SizedBox(width: 20),
+              ]
+            : null,
       ),
 
       // --- CUERPO: PERSISTENCIA DE PANTALLAS ---
-      body: IndexedStack(index: _currentIndex, children: _views),
+      body: IndexedStack(index: navProvider.currentIndex, children: _views),
+
+      // --- NAVEGACIÓN MÓVIL ---
+      bottomNavigationBar: !isDesktop
+          ? BottomNavigationBar(
+              currentIndex: navProvider.currentIndex,
+              onTap: (index) =>
+                  context.read<NavigationProvider>().setIndex(index),
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: const Color.fromARGB(255, 44, 49, 54),
+              selectedItemColor: const Color.fromARGB(255, 230, 104, 60),
+              unselectedItemColor: Colors.grey,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.shopping_cart_outlined),
+                  label: "Ventas",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.inventory_2_outlined),
+                  label: "Inventario",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.local_shipping_outlined),
+                  label: "Logística",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.analytics_outlined),
+                  label: "Dashboard",
+                ),
+              ],
+            )
+          : null,
     );
   }
 
   // Widget personalizado para los botones de navegación
-  Widget _buildNavButton(int index, String label, IconData icon) {
+  Widget _buildNavButton(
+    BuildContext context,
+    int index,
+    String label,
+    IconData icon,
+    int currentIndex,
+  ) {
     // REGLA DE ORO: Si es la pantalla activa, el botón desaparece
-    if (_currentIndex == index) return const SizedBox.shrink();
+    if (currentIndex == index) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 18),
       child: OutlinedButton.icon(
         onPressed: () {
-          setState(() {
-            _currentIndex = index; // Cambia la pantalla y redibuja
-          });
+          context.read<NavigationProvider>().setIndex(index);
         },
         icon: Icon(icon, size: 18),
         label: Text(label),
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.white,
           side: const BorderSide(
-            color: Color(0xFF155DFC),
+            color: Color.fromARGB(255, 230, 104, 60),
             width: 1.5,
           ), // Borde azul NovaFerre
           shape: RoundedRectangleBorder(
