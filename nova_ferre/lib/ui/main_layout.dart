@@ -31,7 +31,7 @@ class _MainLayoutState extends State<MainLayout> {
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 70,
+        toolbarHeight: 65,
         backgroundColor: const Color.fromARGB(255, 44, 49, 54),
         elevation: 0,
 
