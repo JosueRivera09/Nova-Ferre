@@ -16,7 +16,7 @@ class NovaFerreApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'NovaFerre',
+      title: "NovaFerre",
 
       // Configuración básica del Tema (Dark Mode)
       /*theme: ThemeData(
