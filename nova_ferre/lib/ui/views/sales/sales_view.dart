@@ -5,7 +5,6 @@ class SalesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // LayoutBuilder detecta el tamaño del espacio disponible en tiempo real
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth > 700) {
@@ -68,24 +67,28 @@ class SalesView extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            decoration: InputDecoration(
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.black),
-                borderRadius: BorderRadius.all(Radius.circular(8.0)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
+          child: SizedBox(
+            width: 500,
+
+            child: TextField(
+              decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
+                  borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Color.fromARGB(255, 230, 104, 60),
+                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                ),
+                isDense: true,
+                prefixIcon: const Icon(
+                  Icons.search,
                   color: Color.fromARGB(255, 230, 104, 60),
                 ),
-                borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                hintText: "Buscar producto",
               ),
-              isDense: true,
-              prefixIcon: const Icon(
-                Icons.search,
-                color: Color.fromARGB(255, 230, 104, 60),
-              ),
-              hintText: "Buscar producto",
             ),
           ),
         ),

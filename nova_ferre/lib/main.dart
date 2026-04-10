@@ -18,15 +18,10 @@ class NovaFerreApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: "NovaFerre",
 
-      // Configuración básica del Tema (Dark Mode)
-      /*theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorSchemeSeed: const Color(0xFF155DFC), // Tu azul vibrante
-      ),*/
-
       // Apuntamos directo al MainLayout que vas a crear
-      home: const MainLayout(),
+      //home: const MainLayout(),
+      // Ejemplo de flujo real
+      home: const LoginView(),
     );
   }
 }
