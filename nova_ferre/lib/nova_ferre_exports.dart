@@ -9,6 +9,7 @@ export 'ui/views/inventory/inventory_view.dart';
 export 'ui/views/logistics/logistics_view.dart';
 export 'ui/views/dashboard/dashboard_view.dart';
 export 'ui/views/auth/login_view.dart';
+export 'ui/views/settings/settings_view.dart';
 
 //paquetes para estilo y utilidades
 export 'package:google_fonts/google_fonts.dart';

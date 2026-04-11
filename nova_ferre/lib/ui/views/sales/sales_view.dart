@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:nova_ferre/nova_ferre_exports.dart';
 
 class SalesView extends StatelessWidget {
   const SalesView({super.key});
@@ -32,7 +32,7 @@ class SalesView extends StatelessWidget {
         VerticalDivider(
           width: 1,
           thickness: 1,
-          color: Colors.grey.withOpacity(0.2),
+          color: Colors.grey.withValues(alpha: 0.5),
         ),
 
         // Carrito (40%)
@@ -106,7 +106,7 @@ class SalesView extends StatelessWidget {
   // --- COMPONENTE: CARRITO ---
   Widget _buildCarrito(BuildContext context, {required bool isMobile}) {
     return Container(
-      color: Theme.of(context).cardColor.withOpacity(0.5),
+      color: Theme.of(context).cardColor.withValues(alpha: 0.5),
       child: Column(
         mainAxisSize: isMobile ? MainAxisSize.min : MainAxisSize.max,
         children: [

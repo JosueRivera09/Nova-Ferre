@@ -28,8 +28,10 @@ class _LoginViewState extends State<LoginView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Image.asset('assets/images/logo2.png', height: 120),
-                  const SizedBox(height: 30),
+                  Image.asset('assets/images/logoDarkPng.png', height: 120),
+
+                  Image.asset('assets/images/logoLetrasPng.png', width: 220),
+                  const SizedBox(height: 20),
 
                   const Text(
                     "Iniciar Sesión",
@@ -46,15 +48,22 @@ class _LoginViewState extends State<LoginView> {
                     style: TextStyle(color: Colors.white),
                     controller: _idController,
                     decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                        borderSide: BorderSide(color: Colors.white54),
+                      ),
                       focusColor: Color.fromARGB(255, 230, 104, 60),
                       errorStyle: TextStyle(color: Color(0xFFFFC107)),
                       errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
                         borderSide: BorderSide(color: Color(0xFFFFC107)),
                       ),
                       focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
                         borderSide: BorderSide(color: Color(0xFFFFC107)),
                       ),
                       focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
                         borderSide: BorderSide(
                           color: Color.fromARGB(255, 230, 104, 60),
                         ),
@@ -83,16 +92,23 @@ class _LoginViewState extends State<LoginView> {
                     obscureText: true,
 
                     decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                        borderSide: BorderSide(color: Colors.white54),
+                      ),
                       errorStyle: TextStyle(color: Color(0xFFFFC107)),
                       errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
                         borderSide: BorderSide(color: Color(0xFFFFC107)),
                       ),
                       focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
                         borderSide: BorderSide(
                           color: Color.fromARGB(255, 230, 104, 60),
                         ),
                       ),
                       focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
                         borderSide: BorderSide(color: Color(0xFFFFC107)),
                       ),
                       labelStyle: TextStyle(color: Colors.white),
@@ -158,8 +174,28 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          // Lógica de autenticación aquí
-                          print("Intentando entrar con: ${_idController.text}");
+                          // Validación sencilla
+                          if (_idController.text == '123456' &&
+                              _passwordController.text == '123456') {
+                            // Si es correcto, navegamos al Home
+                            print("Acceso concedido a Nova Ferre");
+
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MainLayout(),
+                              ),
+                            );
+                          } else {
+                            // Si es incorrecto, mostramos un aviso
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("ID o contraseña incorrectos"),
+                                backgroundColor: Colors
+                                    .amber, // Usando el color de advertencia que elegimos
+                              ),
+                            );
+                          }
                         }
                       },
                       child: const Text(
