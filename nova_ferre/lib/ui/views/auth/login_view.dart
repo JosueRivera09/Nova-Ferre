@@ -10,209 +10,179 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final _formKey = GlobalKey<FormState>();
   final _idController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _pinController = TextEditingController();
+
+  bool _isLoading = false;
+  bool _rememberMe = true;
+
+  @override
+  void dispose() {
+    _idController.dispose();
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  void _handleLogin() async {
+    // 1. Validación local
+    if (!_formKey.currentState!.validate()) return;
+
+    // 2. Estado de carga
+    setState(() => _isLoading = true);
+
+    try {
+      // 3. Obtener el Provider
+      final authProvider = context.read<AuthProvider>();
+      final id = int.tryParse(_idController.text) ?? 0;
+
+      // 4. Intento de Login real en Supabase a través del Provider
+      final success = await authProvider.login(id, _pinController.text);
+
+      if (!mounted) return;
+
+      if (success) {
+        // ÉXITO: Navegamos al MainLayout
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainLayout()),
+        );
+      } else {
+        // ERROR: Credenciales inválidas
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("ID o PIN incorrectos. Verifique sus datos."),
+            backgroundColor: Colors.amber,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Error inesperado en el acceso")),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 44, 49, 54),
+      backgroundColor: const Color(0xFF2C3136),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Container(
-            constraints: const BoxConstraints(
-              maxWidth: 400,
-            ), // Ancho para Web/Desktop
+            constraints: const BoxConstraints(maxWidth: 400),
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Image.asset('assets/images/logoDarkPng.png', height: 120),
-
-                  Image.asset('assets/images/logoLetrasPng.png', width: 220),
-                  const SizedBox(height: 20),
+                  // --- LOGOTIPOS ---
+                  Image.asset('assets/images/logoDarkPng.png', height: 100),
+                  const SizedBox(height: 10),
+                  Image.asset('assets/images/logoLetrasPng.png', width: 180),
+                  const SizedBox(height: 40),
 
                   const Text(
-                    "Iniciar Sesión",
+                    "Acceso al Sistema",
                     style: TextStyle(
-                      fontSize: 28,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 30),
 
-                  // Campo de ID
-                  TextFormField(
-                    style: TextStyle(color: Colors.white),
+                  // --- INPUTS ---
+                  AuthInputField(
                     controller: _idController,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                        borderSide: BorderSide(color: Colors.white54),
-                      ),
-                      focusColor: Color.fromARGB(255, 230, 104, 60),
-                      errorStyle: TextStyle(color: Color(0xFFFFC107)),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                        borderSide: BorderSide(color: Color(0xFFFFC107)),
-                      ),
-                      focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                        borderSide: BorderSide(color: Color(0xFFFFC107)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                        borderSide: BorderSide(
-                          color: Color.fromARGB(255, 230, 104, 60),
-                        ),
-                      ),
-                      labelText: "ID de Usuario",
-                      prefixIcon: Icon(
-                        Icons.person_outline,
-                        color: Colors.white,
-                      ),
-                      border: OutlineInputBorder(),
-                      labelStyle: TextStyle(color: Colors.white),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.length != 6) {
-                        return "El ID debe tener exactamente 6 caracteres";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Campo de Contraseña
-                  TextFormField(
-                    style: TextStyle(color: Colors.white),
-                    controller: _passwordController,
-                    obscureText: true,
-
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                        borderSide: BorderSide(color: Colors.white54),
-                      ),
-                      errorStyle: TextStyle(color: Color(0xFFFFC107)),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                        borderSide: BorderSide(color: Color(0xFFFFC107)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                        borderSide: BorderSide(
-                          color: Color.fromARGB(255, 230, 104, 60),
-                        ),
-                      ),
-                      focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                        borderSide: BorderSide(color: Color(0xFFFFC107)),
-                      ),
-                      labelStyle: TextStyle(color: Colors.white),
-                      labelText: "Contraseña",
-                      prefixIcon: Icon(Icons.lock_outline, color: Colors.white),
-                      border: OutlineInputBorder(),
-                    ),
-
-                    validator: (value) => (value == null || value.length < 6)
-                        ? "Mínimo 6 caracteres"
+                    label: "ID de Usuario (6 dígitos)",
+                    icon: Icons.person_outline,
+                    keyboardType: TextInputType.number,
+                    validator: (v) => (v == null || v.length != 6)
+                        ? "Ingrese su código de 6 dígitos"
                         : null,
                   ),
-                  const SizedBox(height: 30),
-                  const SizedBox(
-                    width: 500,
-                    child: Row(
-                      children: [
-                        Checkbox(
-                          value: true,
-                          onChanged: null,
-                          side: BorderSide(color: Colors.white),
-                          fillColor: WidgetStateProperty.fromMap({
-                            WidgetState.selected: Color.fromARGB(
-                              255,
-                              230,
-                              104,
-                              60,
-                            ),
-                            WidgetState.hovered: Color.fromARGB(
-                              255,
-                              230,
-                              104,
-                              60,
-                            ),
-                            WidgetState.focused: Color.fromARGB(
-                              255,
-                              230,
-                              104,
-                              60,
-                            ),
-                          }),
-                        ),
-                        Text(
-                          "Recuerdame",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
+                  const SizedBox(height: 20),
+                  AuthInputField(
+                    controller: _pinController,
+                    label: "PIN de Seguridad",
+                    icon: Icons.lock_outline,
+                    isPassword: true,
+                    keyboardType: TextInputType.number,
+                    validator: (v) =>
+                        (v == null || v.length < 4) ? "Mínimo 4 dígitos" : null,
                   ),
-                  SizedBox(height: 30),
 
-                  // Botón de Acción
+                  const SizedBox(height: 15),
+
+                  _buildRememberMe(),
+
+                  const SizedBox(height: 40),
+
+                  // --- BOTÓN DE ACCIÓN ---
                   SizedBox(
                     width: double.infinity,
                     height: 55,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color.fromARGB(255, 230, 104, 60),
+                        backgroundColor: const Color(0xFFE6683C),
                         foregroundColor: Colors.white,
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          // Validación sencilla
-                          if (_idController.text == '123456' &&
-                              _passwordController.text == '123456') {
-                            // Si es correcto, navegamos al Home
-                            print("Acceso concedido a Nova Ferre");
-
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const MainLayout(),
+                      onPressed: _isLoading ? null : _handleLogin,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
                               ),
-                            );
-                          } else {
-                            // Si es incorrecto, mostramos un aviso
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("ID o contraseña incorrectos"),
-                                backgroundColor: Colors
-                                    .amber, // Usando el color de advertencia que elegimos
+                            )
+                          : const Text(
+                              "INGRESAR",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
-                            );
-                          }
-                        }
-                      },
-                      child: const Text(
-                        "INGRESAR",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                            ),
                     ),
                   ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildRememberMe() {
+    return Row(
+      children: [
+        SizedBox(
+          height: 24,
+          width: 24,
+          child: Checkbox(
+            value: _rememberMe,
+            activeColor: const Color(0xFFE6683C),
+            side: const BorderSide(color: Colors.white54),
+            onChanged: (val) => setState(() => _rememberMe = val!),
+          ),
+        ),
+        const SizedBox(width: 10),
+        const Text(
+          "Mantener sesión iniciada",
+          style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+      ],
     );
   }
 }

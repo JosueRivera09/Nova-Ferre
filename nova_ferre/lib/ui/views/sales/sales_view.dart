@@ -1,169 +1,317 @@
 import 'package:nova_ferre/nova_ferre_exports.dart';
 
-class SalesView extends StatelessWidget {
+class SalesView extends StatefulWidget {
   const SalesView({super.key});
+
+  @override
+  State<SalesView> createState() => _SalesViewState();
+}
+
+class _SalesViewState extends State<SalesView> {
+  bool _isGridView = true;
+  String _selectedCategory = "Todos";
+
+  final List<String> _categories = [
+    "Todos",
+    "Herramientas",
+    "Construcción",
+    "Electricidad",
+    "Fontanería",
+    "Pintura",
+  ];
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth > 700) {
-          return _buildDesktopLayout(context);
-        } else {
-          return _buildMobileLayout(context);
-        }
+        return constraints.maxWidth > 700
+            ? _buildDesktopLayout(context)
+            : _buildMobileLayout(context);
       },
     );
   }
 
-  // --- DISEÑO ESCRITORIO
+  // --- DISEÑOS ---
   Widget _buildDesktopLayout(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 3,
-          child: SizedBox(
-            height: double.infinity,
-            child: _buildCatalogo(context, isMobile: false),
-          ),
-        ),
+        Expanded(flex: 3, child: _buildCatalogo(context, isMobile: false)),
+        VerticalDivider(width: 1, color: Colors.grey.withOpacity(0.2)),
+        Expanded(flex: 2, child: _buildCarrito(context)),
+      ],
+    );
+  }
 
-        VerticalDivider(
-          width: 1,
-          thickness: 1,
-          color: Colors.grey.withValues(alpha: 0.5),
-        ),
+  Widget _buildMobileLayout(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(flex: 3, child: _buildCatalogo(context, isMobile: true)),
+        const Divider(height: 1),
+        Expanded(flex: 2, child: _buildCarrito(context)),
+      ],
+    );
+  }
 
-        // Carrito (40%)
+  // --- CATÁLOGO ---
+  Widget _buildCatalogo(BuildContext context, {required bool isMobile}) {
+    return Column(
+      children: [
+        _buildTopBar(isMobile),
         Expanded(
-          flex: 2,
-          child: SizedBox(
-            height: double.infinity, // Obliga a ocupar todo el alto
-            child: _buildCarrito(context, isMobile: false),
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: _isGridView ? _buildGrid() : _buildList(),
           ),
         ),
       ],
     );
   }
 
-  // --- DISEÑO MÓVIL
-  Widget _buildMobileLayout(BuildContext context) {
-    return SingleChildScrollView(
+  Widget _buildGrid() {
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 200,
+        childAspectRatio: 0.8,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+      ),
+      itemCount: 6, // Simulando datos
+      itemBuilder: (context, index) => ProductCard(
+        sku: "HER-26-000$index",
+        name: "Producto de ejemplo $index",
+        price: 25.50,
+        category: "Herramientas",
+        isGridView: true,
+        onAdd: () {},
+      ),
+    );
+  }
+
+  Widget _buildList() {
+    return ListView.builder(
+      itemCount: 6,
+      itemBuilder: (context, index) => ProductCard(
+        sku: "PIN-26-000$index",
+        name: "Pintura Acrílica Pro $index",
+        price: 45.00,
+        category: "Pintura",
+        isGridView: false,
+        onAdd: () {},
+      ),
+    );
+  }
+
+  // --- CARRITO ---
+  Widget _buildCarrito(BuildContext context) {
+    return Container(
+      color: Colors.white,
       child: Column(
         children: [
-          _buildCatalogo(context, isMobile: true),
-          const Divider(height: 1),
-          _buildCarrito(context, isMobile: true),
+          _buildCartHeader(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: 0, // Aquí irá salesProvider.items.length
+              itemBuilder: (context, index) => CartItemTile(
+                name: "Martillo Pro",
+                price: 15.0,
+                quantity: 2,
+                onRemove: () {},
+              ),
+              // Mientras esté vacío:
+              padding: EdgeInsets.zero,
+            ),
+          ),
+          if (0 == 0) // Placeholder cuando no hay items
+            const Expanded(
+              child: Center(
+                child: Text(
+                  "Carrito vacío",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+            ),
+          _buildCheckoutSection(),
         ],
       ),
     );
   }
 
-  // --- COMPONENTE: CATÁLOGO ---
-  Widget _buildCatalogo(BuildContext context, {required bool isMobile}) {
-    return Column(
-      mainAxisSize: isMobile ? MainAxisSize.min : MainAxisSize.max,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SizedBox(
-            width: 500,
-
-            child: TextField(
-              decoration: InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black),
-                  borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Color.fromARGB(255, 230, 104, 60),
-                  ),
-                  borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                ),
-                isDense: true,
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: Color.fromARGB(255, 230, 104, 60),
-                ),
-                hintText: "Buscar producto",
-              ),
-            ),
+  // --- SUB-WIDGETS ---
+  Widget _buildCartHeader() {
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Icon(Icons.shopping_bag_outlined, color: Color(0xFFE6683C)),
+          SizedBox(width: 8),
+          Text(
+            "Resumen de Venta",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
-        ),
-
-        isMobile
-            ? const SizedBox(
-                height: 300,
-                child: Center(child: Text("Grid de Productos")),
-              )
-            : const Expanded(child: Center(child: Text("Grid de Productos"))),
-      ],
+        ],
+      ),
     );
   }
 
-  // --- COMPONENTE: CARRITO ---
-  Widget _buildCarrito(BuildContext context, {required bool isMobile}) {
+  Widget _buildCheckoutSection() {
     return Container(
-      color: Theme.of(context).cardColor.withValues(alpha: 0.5),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
       child: Column(
-        mainAxisSize: isMobile ? MainAxisSize.min : MainAxisSize.max,
         children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.shopping_cart_checkout_outlined,
-                    color: Color.fromARGB(255, 230, 104, 60),
-                  ),
-                  SizedBox(width: 20),
-                  Text(
-                    "Carrito de Compras",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Total:",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              Text(
+                "\$0.00",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Color(0xFFE6683C),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE6683C),
+              minimumSize: const Size(double.infinity, 50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              elevation: 0,
+            ),
+            onPressed: () {},
+            child: const Text(
+              "COBRAR",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          // Área de lista de productos
-          isMobile
-              ? const SizedBox(
-                  height: 200,
-                  child: Center(child: Text("Lista de productos")),
-                )
-              : const Expanded(
-                  child: Center(child: Text("Lista de productos")),
-                ),
+        ],
+      ),
+    );
+  }
 
-          const Divider(),
-          // Sección fija de totales al fondo
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                const Text(
-                  "Total: \$0.00",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 230, 104, 60),
-                    minimumSize: const Size(double.infinity, 45),
+  Widget _buildTopBar(bool isMobile) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      color: Colors.white,
+      child: Column(
+        children: [
+          if (isMobile) ...[
+            SizedBox(
+              height: 40,
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: "Buscar...",
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    size: 20,
+                    color: Color(0xFFE6683C),
                   ),
-                  onPressed: () {},
-                  child: const Text(
-                    "COBRAR",
-                    style: TextStyle(color: Colors.white),
+                  filled: true,
+                  fillColor: const Color(0xFFF5F7F9),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
                   ),
+                  contentPadding: EdgeInsets.zero,
                 ),
-              ],
+              ),
             ),
+            const SizedBox(height: 10),
+          ],
+          Row(
+            children: [
+              Expanded(child: _buildFilterScroll()),
+              const SizedBox(width: 8),
+              _buildLayoutToggle(),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterScroll() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: _categories.map((cat) {
+          bool isSelected = _selectedCategory == cat;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(
+                cat,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black87,
+                  fontSize: 11,
+                ),
+              ),
+              selected: isSelected,
+              onSelected: (val) => setState(() => _selectedCategory = cat),
+              selectedColor: const Color(0xFFE6683C),
+              backgroundColor: const Color(0xFFF5F7F9),
+              side: BorderSide.none,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildLayoutToggle() {
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F7F9),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          _buildLayoutIcon(Icons.grid_view_rounded, true),
+          _buildLayoutIcon(Icons.view_list_rounded, false),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLayoutIcon(IconData icon, bool isGrid) {
+    bool isSelected = _isGridView == isGrid;
+    return GestureDetector(
+      onTap: () => setState(() => _isGridView = isGrid),
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Icon(
+          icon,
+          size: 18,
+          color: isSelected ? const Color(0xFFE6683C) : Colors.grey,
+        ),
       ),
     );
   }
