@@ -26,6 +26,7 @@ export 'core/constants.dart';
 
 // modelos
 export 'models/user_model.dart';
+export 'models/product_model.dart';
 
 // servicios
 export 'services/auth_service.dart';

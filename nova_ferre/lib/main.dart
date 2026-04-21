@@ -21,7 +21,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
 
         // Control de ventas y carrito
-        // ChangeNotifierProvider(create: (_) => SalesProvider()),
+        ChangeNotifierProvider(create: (_) => SalesProvider()),
 
         // Gestión de inventario
         // ChangeNotifierProvider(create: (_) => InventoryProvider()),

@@ -95,7 +95,7 @@ class ProductCard extends StatelessWidget {
                       const Icon(
                         Icons.add_circle_outline,
                         color: Colors.grey,
-                        size: 20,
+                        size: 30,
                       ),
                   ],
                 ),

@@ -24,7 +24,7 @@ class AuthService {
       // 2. Mapeamos la respuesta al modelo
       return UserModel.fromJson(response);
     } catch (e) {
-      print("Error en Login: $e");
+      // print("Error en Login: $e");
       return null;
     }
   }
