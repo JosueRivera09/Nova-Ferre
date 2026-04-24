@@ -332,7 +332,7 @@ class _SalesViewState extends State<SalesView> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          ok ? "¡Venta NF Exitosa!" : "Error al procesar venta",
+                          ok ? "¡Venta Exitosa!" : "Error al procesar venta",
                         ),
                         backgroundColor: ok ? Colors.green : Colors.redAccent,
                         behavior: SnackBarBehavior.floating,

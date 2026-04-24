@@ -14,7 +14,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        // Control de navegación (Pestañas)
+        // Control de navegación
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
 
         // El cerebro de la sesión (Login, Roles, Usuario actual)
@@ -24,7 +24,13 @@ void main() async {
         ChangeNotifierProvider(create: (_) => SalesProvider()),
 
         // Gestión de inventario
-        // ChangeNotifierProvider(create: (_) => InventoryProvider()),
+        ChangeNotifierProvider(create: (_) => InventoryProvider()),
+
+        // logistica manejo de estado
+        ChangeNotifierProvider(create: (_) => LogisticsProvider()),
+
+        //dashboard control
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
       ],
       child: const NovaFerreApp(),
     ),
@@ -43,7 +49,7 @@ class NovaFerreApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: "Nova-Ferre",
 
-      // Aplicamos el ADN visual de la marca
+      // Aplicamos el visual de la marca
       // theme: AppTheme.lightTheme, // Definido en lib/core/theme.dart
       //darkTheme: AppTheme.darkTheme,
 

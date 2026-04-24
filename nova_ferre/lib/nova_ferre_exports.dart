@@ -41,3 +41,5 @@ export 'providers/navigation_provider.dart';
 export 'providers/auth_provider.dart';
 export 'providers/sales_provider.dart';
 export 'providers/inventory_provider.dart';
+export 'providers/logistics_provider.dart';
+export 'providers/dashboard_provider.dart';
