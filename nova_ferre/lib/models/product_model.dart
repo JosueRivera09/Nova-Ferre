@@ -2,21 +2,26 @@ class ProductModel {
   final String id;
   final String nombre;
   final String? descripcion;
+  final double precioCompra;
   final double precioVenta;
   final double stock;
   final String nombreCategoria;
+  final bool estado; // true: Activo, false: Inactivo
+  final String? motivoInactivo;
 
   ProductModel({
     required this.id,
     required this.nombre,
     this.descripcion,
+    required this.precioCompra,
     required this.precioVenta,
     required this.stock,
     required this.nombreCategoria,
+    this.estado = true,
+    this.motivoInactivo,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
-    // SEGURIDAD: Supabase a veces devuelve la relación como Lista o como Mapa
     final categoriaRaw = json['categorias'];
     String catName = 'Sin Categoría';
 
@@ -30,10 +35,12 @@ class ProductModel {
       id: json['id_producto']?.toString() ?? '',
       nombre: json['nombre_articulo'] ?? 'Sin nombre',
       descripcion: json['descripcion'],
-      // SEGURIDAD: Convertimos a double de forma robusta
-      precioVenta: double.tryParse(json['precio_venta'].toString()) ?? 0.0,
-      stock: double.tryParse(json['stock'].toString()) ?? 0.0,
+      precioCompra: double.tryParse(json['precio_compra']?.toString() ?? '0') ?? 0.0,
+      precioVenta: double.tryParse(json['precio_venta']?.toString() ?? '0') ?? 0.0,
+      stock: double.tryParse(json['stock']?.toString() ?? '0') ?? 0.0,
       nombreCategoria: catName,
+      estado: json['estado_activo'] ?? true,
+      motivoInactivo: json['motivo_inactivo'],
     );
   }
 }

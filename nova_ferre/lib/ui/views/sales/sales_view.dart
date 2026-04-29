@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:nova_ferre/nova_ferre_exports.dart';
 
 class SalesView extends StatefulWidget {
@@ -52,36 +54,48 @@ class _SalesViewState extends State<SalesView> {
           flex: 3,
           child: _buildCatalogo(context, sales, isMobile: false),
         ),
-        VerticalDivider(width: 1, color: Colors.grey.withOpacity(0.2)),
+        VerticalDivider(width: 1, color: Colors.grey.withValues(alpha: 0.2)),
         SizedBox(width: 350, child: _buildCarrito(context, sales)),
       ],
     );
   }
 
   Widget _buildMobileLayout(BuildContext context, SalesProvider sales) {
-    return Column(
-      children: [
-        Expanded(
-          flex: 3,
-          child: _buildCatalogo(context, sales, isMobile: true),
-        ),
-        const Divider(height: 1),
-        Expanded(flex: 2, child: _buildCarrito(context, sales)),
-      ],
+    final screenHeight = MediaQuery.of(context).size.height;
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          SizedBox(
+            height: screenHeight * 0.6,
+            child: _buildCatalogo(context, sales, isMobile: true),
+          ),
+          const Divider(height: 1),
+          SizedBox(
+            height: screenHeight * 0.5,
+            child: _buildCarrito(context, sales),
+          ),
+        ],
+      ),
     );
   }
 
-  // --- CATÁLOGO ---
   Widget _buildCatalogo(
     BuildContext context,
     SalesProvider sales, {
     required bool isMobile,
   }) {
-    final filteredProducts = _selectedCategory == "Todos"
-        ? sales.products
-        : sales.products
-              .where((p) => p.nombreCategoria == _selectedCategory)
-              .toList();
+    final nav = context.watch<NavigationProvider>();
+    final searchQuery = nav.searchQuery.toLowerCase();
+
+    final filteredProducts = sales.products.where((p) {
+      final matchesCategory =
+          _selectedCategory == "Todos" ||
+          p.nombreCategoria == _selectedCategory;
+      final matchesSearch =
+          p.nombre.toLowerCase().contains(searchQuery) ||
+          p.id.toLowerCase().contains(searchQuery);
+      return matchesCategory && matchesSearch;
+    }).toList();
 
     return Column(
       children: [
@@ -105,10 +119,10 @@ class _SalesViewState extends State<SalesView> {
   Widget _buildGrid(List<ProductModel> products, SalesProvider sales) {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 220,
+        maxCrossAxisExtent: 180,
         childAspectRatio: 0.75,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemCount: products.length,
       itemBuilder: (context, index) {
@@ -119,6 +133,7 @@ class _SalesViewState extends State<SalesView> {
           price: p.precioVenta,
           category: p.nombreCategoria,
           isGridView: true,
+          stock: p.stock,
           onAdd: () => sales.addToCart(p),
         );
       },
@@ -136,6 +151,7 @@ class _SalesViewState extends State<SalesView> {
           price: p.precioVenta,
           category: p.nombreCategoria,
           isGridView: false,
+          stock: p.stock,
           onAdd: () => sales.addToCart(p),
         );
       },
@@ -251,26 +267,31 @@ class _SalesViewState extends State<SalesView> {
   }
 
   Widget _buildFilterScroll() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: _categories.map((cat) {
-          bool isSelected = _selectedCategory == cat;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(
-                cat,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.black87,
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(
+        dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: _categories.map((cat) {
+            bool isSelected = _selectedCategory == cat;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text(
+                  cat,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black87,
+                  ),
                 ),
+                selected: isSelected,
+                onSelected: (val) => setState(() => _selectedCategory = cat),
+                selectedColor: const Color(0xFFE6683C),
               ),
-              selected: isSelected,
-              onSelected: (val) => setState(() => _selectedCategory = cat),
-              selectedColor: const Color(0xFFE6683C),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -302,55 +323,105 @@ class _SalesViewState extends State<SalesView> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Confirmar Venta"),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(labelText: "Nombre del Cliente"),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancelar"),
-          ),
-          ElevatedButton(
-            // Deshabilitamos el botón si el nombre está vacío o si ya está cargando
-            onPressed: (sales.isLoading || nameController.text.trim().isEmpty)
-                ? null
-                : () async {
-                    final ok = await sales.processSale(
-                      userId: auth.user!.id,
-                      clienteNombre: nameController.text.trim(),
-                    );
+      builder: (dialogContext) => Consumer<SalesProvider>(
+        builder: (_, salesWatch, __) => CustomDialog(
+          title: "Confirmar Cobro",
+          subtitle: "Verifique los detalles antes de procesar",
+          icon: Icons.shopping_cart_checkout_rounded,
+          confirmLabel: "Cobrar Ahora",
+          isLoading: salesWatch.isLoading,
+          onConfirm: () async {
+            final cliente = nameController.text.trim();
+            if (cliente.isEmpty) return;
 
-                    if (!mounted) return;
+            final currentContext = context;
 
-                    // Cerramos el diálogo
-                    Navigator.pop(context);
+            final ok = await salesWatch.processSale(
+              userId: auth.user!.id,
+              clienteNombre: cliente,
+            );
 
-                    // Mostramos el resultado
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          ok ? "¡Venta Exitosa!" : "Error al procesar venta",
-                        ),
-                        backgroundColor: ok ? Colors.green : Colors.redAccent,
-                        behavior: SnackBarBehavior.floating,
+            if (!dialogContext.mounted) return;
+            Navigator.pop(dialogContext);
+
+            if (ok) {
+              if (currentContext.mounted) {
+                currentContext.read<LogisticsProvider>().fetchPendingDeliveries();
+                currentContext.read<DashboardProvider>().fetchMetrics();
+                CustomNotification.show(currentContext, "¡Venta finalizada y stock actualizado!", isSuccess: true);
+              }
+            } else {
+              if (currentContext.mounted) {
+                CustomNotification.show(currentContext, "Error al procesar la venta", isSuccess: false);
+              }
+            }
+          },
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Resumen del Total
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 20,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F7F9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Total a Pagar:",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Color(0xFF4F5D75),
                       ),
-                    );
-                  },
-            child: sales.isLoading
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
                     ),
-                  )
-                : const Text("Vender"),
+                    Text(
+                      "\$${salesWatch.total.toStringAsFixed(2)}",
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFE6683C),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Campo del Cliente
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: "Nombre del Cliente",
+                  hintText: "Ej. Juan Pérez",
+                  prefixIcon: const Icon(Icons.person_outline_rounded),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: Color(0xFFE6683C),
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

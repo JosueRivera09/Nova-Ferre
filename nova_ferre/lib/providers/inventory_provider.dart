@@ -43,4 +43,135 @@ class InventoryProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  List<Map<String, dynamic>> _categories = [];
+  List<Map<String, dynamic>> get categories => _categories;
+
+  Future<void> fetchCategories() async {
+    try {
+      final response = await _supabase.from('categorias').select();
+      _categories = List<Map<String, dynamic>>.from(response);
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error fetching categories: $e");
+    }
+  }
+
+  Future<String?> addCategory({required String nombre, required String prefijo}) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      await _supabase.from('categorias').insert({
+        'nombre_categoria': nombre,
+        'prefijo': prefijo,
+      });
+      await fetchCategories();
+      return null;
+    } catch (e) {
+      return e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<String?> updateCategory({required int idCategoria, required String nombre, required String prefijo}) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      await _supabase.from('categorias').update({
+        'nombre_categoria': nombre,
+        'prefijo': prefijo,
+      }).eq('id_categoria', idCategoria);
+      await fetchCategories();
+      return null;
+    } catch (e) {
+      return e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<String?> addProduct({
+    required String nombre,
+    String? descripcion,
+    required double precioCompra,
+    required double precioVenta,
+    required double stock,
+    String? idCategoria,
+    bool estado = true,
+    String? motivoInactivo,
+  }) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final data = {
+        'nombre_articulo': nombre,
+        'descripcion': descripcion,
+        'precio_compra': precioCompra,
+        'precio_venta': precioVenta,
+        'stock': stock,
+        'estado_activo': estado,
+        'motivo_inactivo': !estado ? motivoInactivo : null,
+      };
+
+      if (idCategoria != null) {
+        data['id_categoria'] = idCategoria;
+      }
+
+      await _supabase.from('productos').insert(data);
+      await fetchInventory();
+      return null;
+    } catch (e) {
+      debugPrint("Error addProduct: $e");
+      return e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+  Future<String?> updateProduct({
+    required String id,
+    required String nombre,
+    String? descripcion,
+    required double precioCompra,
+    required double precioVenta,
+    required double stock,
+    String? idCategoria,
+    bool estado = true,
+    String? motivoInactivo,
+  }) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final data = {
+        'nombre_articulo': nombre,
+        'descripcion': descripcion,
+        'precio_compra': precioCompra,
+        'precio_venta': precioVenta,
+        'stock': stock,
+        'estado_activo': estado,
+        'motivo_inactivo': !estado ? motivoInactivo : null,
+      };
+
+      if (idCategoria != null) {
+        data['id_categoria'] = idCategoria;
+      } else {
+        data['id_categoria'] = null; // Or handle category removal if needed
+      }
+
+      await _supabase.from('productos').update(data).eq('id_producto', id);
+      await fetchInventory();
+      return null;
+    } catch (e) {
+      debugPrint("Error updateProduct: $e");
+      return e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

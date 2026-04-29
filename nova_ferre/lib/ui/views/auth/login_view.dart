@@ -1,4 +1,5 @@
 import 'package:nova_ferre/nova_ferre_exports.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -13,7 +14,29 @@ class _LoginViewState extends State<LoginView> {
   final _pinController = TextEditingController();
 
   bool _isLoading = false;
-  bool _rememberMe = true;
+  bool _rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedId = prefs.getString('saved_id');
+    final savedPin = prefs.getString('saved_pin');
+
+    if (savedId != null && savedPin != null) {
+      setState(() {
+        _idController.text = savedId;
+        _pinController.text = savedPin;
+        _rememberMe = true;
+      });
+      // Intentar auto login
+      _handleLogin();
+    }
+  }
 
   @override
   void dispose() {
@@ -40,25 +63,36 @@ class _LoginViewState extends State<LoginView> {
       if (!mounted) return;
 
       if (success) {
-        // ÉXITO: Navegamos al MainLayout
-        Navigator.pushReplacement(
+        // Guardar o borrar credenciales según "Recordar"
+        final prefs = await SharedPreferences.getInstance();
+        if (_rememberMe) {
+          await prefs.setString('saved_id', _idController.text);
+          await prefs.setString('saved_pin', _pinController.text);
+        } else {
+          await prefs.remove('saved_id');
+          await prefs.remove('saved_pin');
+        }
+
+        // ÉXITO: Navegamos al MainLayout limpiando el stack
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const MainLayout()),
+          (route) => false,
         );
       } else {
         // ERROR: Credenciales inválidas
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("ID o PIN incorrectos. Verifique sus datos."),
-            backgroundColor: Colors.amber,
-            behavior: SnackBarBehavior.floating,
-          ),
+        CustomNotification.show(
+          context, 
+          "ID o PIN incorrectos. Verifique sus datos.", 
+          isSuccess: false,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Error inesperado en el acceso")),
+        CustomNotification.show(
+          context, 
+          "Error inesperado en el acceso", 
+          isSuccess: false,
         );
       }
     } finally {
@@ -98,7 +132,7 @@ class _LoginViewState extends State<LoginView> {
                   // --- INPUTS ---
                   AuthInputField(
                     controller: _idController,
-                    label: "ID de Usuario (6 dígitos)",
+                    label: "ID de Usuario",
                     icon: Icons.person_outline,
                     keyboardType: TextInputType.number,
                     validator: (v) => (v == null || v.length != 6)
@@ -179,7 +213,7 @@ class _LoginViewState extends State<LoginView> {
         ),
         const SizedBox(width: 10),
         const Text(
-          "Mantener sesión iniciada",
+          "Recordar sesión",
           style: TextStyle(color: Colors.white70, fontSize: 14),
         ),
       ],

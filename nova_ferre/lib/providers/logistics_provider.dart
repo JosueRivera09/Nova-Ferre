@@ -15,7 +15,7 @@ class LogisticsProvider extends ChangeNotifier {
     try {
       final response = await _supabase
           .from('logistica')
-          .select('*, ventas(cliente_nombre, fecha_venta, total)')
+          .select('*, ventas(cliente_nombre, fecha_venta, total, detalle_ventas(cantidad, productos(nombre_articulo)))')
           .eq('estado_entrega', 'Pendiente')
           .order('id_despacho', ascending: false);
 

@@ -8,6 +8,7 @@ class ProductCard extends StatelessWidget {
   final bool isActive;
   final bool isGridView;
   final VoidCallback onAdd;
+  final double stock;
 
   const ProductCard({
     super.key,
@@ -18,6 +19,7 @@ class ProductCard extends StatelessWidget {
     this.isActive = true,
     required this.isGridView,
     required this.onAdd,
+    required this.stock,
   });
 
   @override
@@ -42,13 +44,20 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildGridCard(IconData icon, Color color) {
+    bool isLowStock = stock < 10;
+
     return Opacity(
       opacity: isActive ? 1.0 : 0.5,
       child: Card(
         elevation: 0,
+        color: isLowStock ? Colors.orange.shade50 : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Colors.grey.withOpacity(0.2)),
+          side: BorderSide(
+            color: isLowStock
+                ? Colors.orange.shade300
+                : Colors.grey.withValues(alpha: 0.2),
+          ),
         ),
         child: InkWell(
           onTap: isActive ? onAdd : null,
@@ -61,7 +70,7 @@ class ProductCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(icon, color: color, size: 24),
@@ -79,6 +88,17 @@ class ProductCard extends StatelessWidget {
                 Text(
                   sku,
                   style: const TextStyle(color: Colors.grey, fontSize: 10),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    "Stock: ${stock.toInt()}",
+                    style: TextStyle(
+                      color: isLowStock ? Colors.orange.shade800 : Colors.blueGrey,
+                      fontWeight: isLowStock ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 11,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 5),
                 Row(
@@ -108,28 +128,46 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildListTile(IconData icon, Color color) {
+    bool isLowStock = stock < 10;
+
     return Opacity(
       opacity: isActive ? 1.0 : 0.5,
-      child: ListTile(
-        onTap: isActive ? onAdd : null,
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+      child: Container(
+        color: isLowStock ? Colors.orange.shade50 : null,
+        child: ListTile(
+          onTap: isActive ? onAdd : null,
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 20),
           ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        title: Text(
-          name,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        ),
-        subtitle: Text(sku, style: const TextStyle(fontSize: 12)),
-        trailing: Text(
-          "\$${price.toStringAsFixed(2)}",
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFFE6683C),
+          title: Text(
+            name,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(sku, style: const TextStyle(fontSize: 12)),
+              Text(
+                "Stock: ${stock.toInt()}",
+                style: TextStyle(
+                  color: isLowStock ? Colors.orange.shade800 : Colors.blueGrey,
+                  fontWeight: isLowStock ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+          trailing: Text(
+            "\$${price.toStringAsFixed(2)}",
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFE6683C),
+            ),
           ),
         ),
       ),

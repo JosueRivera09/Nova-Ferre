@@ -50,7 +50,7 @@ class AuthInputField extends StatelessWidget {
         ),
         errorStyle: const TextStyle(color: Colors.amber),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.05),
+        fillColor: Colors.white.withValues(alpha: 0.05),
       ),
     );
   }

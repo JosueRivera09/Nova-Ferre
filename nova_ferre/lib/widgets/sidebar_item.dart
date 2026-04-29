@@ -23,20 +23,20 @@ class SidebarItem extends StatelessWidget {
     final isSelected = currentIndex == index;
     const accentColor = Color(0xFFE6683C);
     final color = isLogout
-        ? Colors.redAccent.withOpacity(0.8)
+        ? Colors.redAccent.withValues(alpha: 0.8)
         : (isSelected ? accentColor : Colors.white60);
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => isLogout ? null : onTap(index),
+        onTap: () => onTap(index),
         child: Container(
           decoration: BoxDecoration(
             border: isSelected
                 ? const Border(left: BorderSide(color: accentColor, width: 4))
                 : null,
             color: isSelected
-                ? Colors.white.withOpacity(0.05)
+                ? Colors.white.withValues(alpha: 0.05)
                 : Colors.transparent,
           ),
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),

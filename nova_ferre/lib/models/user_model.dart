@@ -4,6 +4,7 @@ class UserModel {
   final String? urlAvatar;
   final String rol;
   final bool mantenerSesion;
+  final bool estadoUsuario;
 
   UserModel({
     required this.id,
@@ -11,6 +12,7 @@ class UserModel {
     this.urlAvatar,
     required this.rol,
     required this.mantenerSesion,
+    required this.estadoUsuario,
   });
 
   /// Mapea la respuesta de Supabase (JSON) a nuestro objeto UserModel
@@ -34,6 +36,7 @@ class UserModel {
       urlAvatar: json['url_avatar'],
       rol: nombreRol,
       mantenerSesion: json['mantener_sesion'] ?? false,
+      estadoUsuario: json['estado_usuario'] ?? true,
     );
   }
 
@@ -44,6 +47,7 @@ class UserModel {
       'nombre_completo': nombreCompleto,
       'url_avatar': urlAvatar,
       'mantener_sesion': mantenerSesion,
+      'estado_usuario': estadoUsuario,
       // El rol suele ser informativo en el cliente
       'rol': rol,
     };
@@ -56,6 +60,7 @@ class UserModel {
     String? urlAvatar,
     String? rol,
     bool? mantenerSesion,
+    bool? estadoUsuario,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -63,6 +68,7 @@ class UserModel {
       urlAvatar: urlAvatar ?? this.urlAvatar,
       rol: rol ?? this.rol,
       mantenerSesion: mantenerSesion ?? this.mantenerSesion,
+      estadoUsuario: estadoUsuario ?? this.estadoUsuario,
     );
   }
 }

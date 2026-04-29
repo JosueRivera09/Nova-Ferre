@@ -20,6 +20,8 @@ export 'widgets/header_icon.dart';
 export 'widgets/product_card.dart';
 export 'widgets/cart_item_tile.dart';
 export 'widgets/auth_input_field.dart';
+export 'widgets/custom_dialog.dart';
+export 'widgets/custom_notification.dart';
 
 // constantes
 export 'core/constants.dart';
@@ -43,3 +45,4 @@ export 'providers/sales_provider.dart';
 export 'providers/inventory_provider.dart';
 export 'providers/logistics_provider.dart';
 export 'providers/dashboard_provider.dart';
+export 'providers/user_provider.dart';

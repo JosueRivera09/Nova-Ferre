@@ -41,11 +41,19 @@ class SalesProvider extends ChangeNotifier {
 
   // --- LÓGICA DEL CARRITO ---
   void addToCart(ProductModel product) {
+    if (product.stock <= 0) return; // No agregar si no hay stock
+
     final index = _cart.indexWhere((item) => item.product.id == product.id);
     if (index >= 0) {
+      if (_cart[index].quantity + 1 > product.stock) {
+        // No permitir exceder el stock
+        return;
+      }
       _cart[index].quantity++;
     } else {
-      _cart.add(CartItem(product: product, quantity: 1));
+      if (product.stock >= 1) {
+        _cart.add(CartItem(product: product, quantity: 1));
+      }
     }
     notifyListeners();
   }
@@ -71,42 +79,36 @@ class SalesProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      // 1. Insertar la cabecera de la venta
-      // Nota: El id_venta se genera automáticamente por el Trigger en la DB
-      final ventaResponse = await _supabase
-          .from('ventas')
-          .insert({
-            'id_usuario_vendedor': userId,
-            'cliente_nombre': clienteNombre,
-            'total': total,
-          })
-          .select()
-          .single();
+      // 1. Ejecutar la venta en el servidor
+      final listaProductos = _cart.map((item) => {
+        "id_producto": item.product.id,
+        "cantidad": item.quantity,
+        "precio": item.product.precioVenta
+      }).toList();
 
-      final String idVentaGenerada = ventaResponse['id_venta'];
+      await _supabase.rpc('procesar_venta_completa', params: {
+        'p_usuario_id': userId,
+        'p_cliente': clienteNombre,
+        'p_total': total,
+        'p_detalles': listaProductos,
+      });
 
-      // 2. Insertar los detalles de la venta uno por uno
-      for (var item in _cart) {
-        await _supabase.from('detalle_ventas').insert({
-          'id_venta': idVentaGenerada,
-          'id_producto': item.product.id,
-          'cantidad': item.quantity,
-          'precio_unitario_historico': item.product.precioVenta,
-        });
+      // --- AQUÍ ESTÁ EL TRUCO PARA EL TIEMPO REAL ---
+      
+      // 2. Limpiar el carrito localmente
+      _cart.clear(); 
 
-        // 3. Actualizar Stock usando la función RPC de Postgres
-        await _supabase.rpc(
-          'restar_stock',
-          params: {'p_id': item.product.id, 'p_cantidad': item.quantity},
-        );
-      }
+      // 3. Volver a pedir los productos a Supabase (para traer el stock nuevo)
+      // Esto actualiza la lista _products que lee la UI
+      await fetchProducts(); 
 
-      // Limpiar todo tras el éxito
-      clearCart();
-      await fetchProducts(); // Refrescar stock en la lista
+      // 4. ¡AVISAR A LA INTERFAZ!
+      // Sin esta línea, la pantalla no se redibuja
+      notifyListeners(); 
+
       return true;
     } catch (e) {
-      debugPrint("Error en processSale: $e");
+      debugPrint("Error: $e");
       return false;
     } finally {
       _isLoading = false;

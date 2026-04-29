@@ -31,6 +31,9 @@ void main() async {
 
         //dashboard control
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
+
+        // Gestión de usuarios
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: const NovaFerreApp(),
     ),

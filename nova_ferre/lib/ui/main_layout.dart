@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:nova_ferre/nova_ferre_exports.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -40,6 +42,24 @@ class _MainLayoutState extends State<MainLayout> {
     setState(() {
       _activeOverlay = (_activeOverlay == panel) ? null : panel;
     });
+  }
+
+  void _onNavigate(int index) {
+    final nav = context.read<NavigationProvider>();
+    if (nav.currentIndex == index) return;
+
+    nav.setIndex(index);
+
+    // Refrescar datos según la pestaña seleccionada
+    if (index == 0) {
+      context.read<SalesProvider>().fetchProducts();
+    } else if (index == 1) {
+      context.read<InventoryProvider>().fetchInventory();
+    } else if (index == 2) {
+      context.read<LogisticsProvider>().fetchPendingDeliveries();
+    } else if (index == 3) {
+      context.read<DashboardProvider>().fetchMetrics();
+    }
   }
 
   @override
@@ -141,7 +161,9 @@ class _MainLayoutState extends State<MainLayout> {
               if (isDesktop)
                 SearchBox(
                   controller: _searchController,
-                  onChanged: (val) => setState(() {}),
+                  onChanged: (val) {
+                    nav.setSearchQuery(val);
+                  },
                 ),
 
               HeaderIcon(
@@ -154,7 +176,7 @@ class _MainLayoutState extends State<MainLayout> {
                 icon: Icons.settings_outlined,
                 isActive: activeOverlay == 'Ajustes',
                 onTap: () =>
-                    isDesktop ? _toggleOverlay('Ajustes') : nav.setIndex(4),
+                    isDesktop ? _toggleOverlay('Ajustes') : _onNavigate(4),
               ),
               HeaderIcon(
                 icon: Icons.person_outline,
@@ -162,7 +184,7 @@ class _MainLayoutState extends State<MainLayout> {
                     ? activeOverlay == 'Perfil'
                     : nav.currentIndex == 4,
                 onTap: () =>
-                    isDesktop ? _toggleOverlay('Perfil') : nav.setIndex(4),
+                    isDesktop ? _toggleOverlay('Perfil') : _onNavigate(4),
               ),
             ],
           ),
@@ -188,28 +210,28 @@ class _MainLayoutState extends State<MainLayout> {
             currentIndex: nav.currentIndex,
             icon: Icons.shopping_cart_outlined,
             label: "Ventas",
-            onTap: nav.setIndex,
+            onTap: _onNavigate,
           ),
           SidebarItem(
             index: 1,
             currentIndex: nav.currentIndex,
             icon: Icons.inventory_2_outlined,
             label: "Inventario",
-            onTap: nav.setIndex,
+            onTap: _onNavigate,
           ),
           SidebarItem(
             index: 2,
             currentIndex: nav.currentIndex,
             icon: Icons.local_shipping_outlined,
             label: "Logística",
-            onTap: nav.setIndex,
+            onTap: _onNavigate,
           ),
           SidebarItem(
             index: 3,
             currentIndex: nav.currentIndex,
             icon: Icons.analytics_outlined,
             label: "Dashboard",
-            onTap: nav.setIndex,
+            onTap: _onNavigate,
           ),
           const Spacer(),
           SidebarItem(
@@ -217,7 +239,12 @@ class _MainLayoutState extends State<MainLayout> {
             currentIndex: nav.currentIndex,
             icon: Icons.help_outline,
             label: "Soporte",
-            onTap: (i) {},
+            onTap: (i) async {
+              final url = Uri.parse('https://wa.me/+50586234079');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url);
+              }
+            },
           ),
           SidebarItem(
             index: 6,
@@ -225,7 +252,22 @@ class _MainLayoutState extends State<MainLayout> {
             icon: Icons.logout,
             label: "Salir",
             isLogout: true,
-            onTap: (i) {},
+            onTap: (i) async {
+              // Limpiar datos guardados
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.remove('saved_id');
+              await prefs.remove('saved_pin');
+              
+              if (!context.mounted) return;
+              context.read<AuthProvider>().logout();
+              
+              // Navegar al Login limpiando el stack
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginView()),
+                (route) => false,
+              );
+            },
           ),
           const SizedBox(height: 20),
         ],
@@ -239,7 +281,7 @@ class _MainLayoutState extends State<MainLayout> {
         onTap: () => setState(() => _activeOverlay = null),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-          child: Container(color: Colors.black.withOpacity(0.05)),
+          child: Container(color: Colors.black.withValues(alpha: 0.05)),
         ),
       ),
     );
@@ -252,7 +294,7 @@ class _MainLayoutState extends State<MainLayout> {
   ) {
     return BottomNavigationBar(
       currentIndex: nav.currentIndex >= 4 ? 0 : nav.currentIndex,
-      onTap: nav.setIndex,
+      onTap: _onNavigate,
       type: BottomNavigationBarType.fixed,
       backgroundColor: barColor,
       selectedItemColor: accentColor,
