@@ -8,13 +8,15 @@
             "name": "nova_ferre",
             "cwd": "nova_ferre",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "program": "lib/ui/main/main.dart"
         },
         {
             "name": "nova_ferre (profile mode)",
             "cwd": "nova_ferre",
             "request": "launch",
             "type": "dart",
+            "program": "lib/ui/main/main.dart",
             "flutterMode": "profile"
         },
         {
@@ -22,6 +24,7 @@
             "cwd": "nova_ferre",
             "request": "launch",
             "type": "dart",
+            "program": "lib/ui/main/main.dart",
             "flutterMode": "release"
         }
     ]

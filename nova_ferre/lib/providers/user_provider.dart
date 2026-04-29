@@ -1,4 +1,4 @@
-import 'package:nova_ferre/nova_ferre_exports.dart';
+import 'package:nova_ferre/ui/main/nova_ferre_exports.dart';
 
 class UserProvider extends ChangeNotifier {
   final _supabase = Supabase.instance.client;
@@ -22,7 +22,9 @@ class UserProvider extends ChangeNotifier {
           .from('usuarios')
           .select('*, usuario_roles(roles(*))')
           .order('id_usuario');
-      _users = (usersResponse as List).map((u) => UserModel.fromJson(u)).toList();
+      _users = (usersResponse as List)
+          .map((u) => UserModel.fromJson(u))
+          .toList();
     } catch (e) {
       debugPrint("Error UserProvider: $e");
     } finally {
@@ -43,7 +45,8 @@ class UserProvider extends ChangeNotifier {
 
       final response = await _supabase.from('usuarios').insert({
         'nombre_completo': nombre,
-        'pin_hash': pin, // PIN guardado directamente (en prod se debe encriptar)
+        'pin_hash':
+            pin, // PIN guardado directamente (en prod se debe encriptar)
         'estado_usuario': true,
         'area_asignada': areaAsignada,
       }).select();
@@ -76,19 +79,22 @@ class UserProvider extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      final data = {
-        'nombre_completo': nombre,
-        'estado_usuario': estado,
-      };
+      final data = {'nombre_completo': nombre, 'estado_usuario': estado};
       if (pin != null && pin.isNotEmpty) {
         data['pin_hash'] = pin;
       }
 
       await _supabase.from('usuarios').update(data).eq('id_usuario', idUsuario);
-      
+
       // Update role (borrar el anterior y crear el nuevo)
-      await _supabase.from('usuario_roles').delete().eq('id_usuario', idUsuario);
-      await _supabase.from('usuario_roles').insert({'id_usuario': idUsuario, 'id_rol': idRol});
+      await _supabase
+          .from('usuario_roles')
+          .delete()
+          .eq('id_usuario', idUsuario);
+      await _supabase.from('usuario_roles').insert({
+        'id_usuario': idUsuario,
+        'id_rol': idRol,
+      });
 
       await fetchUsersAndRoles();
       return null;

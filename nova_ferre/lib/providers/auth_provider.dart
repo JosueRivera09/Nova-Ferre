@@ -1,4 +1,4 @@
-import 'package:nova_ferre/nova_ferre_exports.dart';
+import 'package:nova_ferre/ui/main/nova_ferre_exports.dart';
 
 class AuthProvider extends ChangeNotifier {
   UserModel? _user;

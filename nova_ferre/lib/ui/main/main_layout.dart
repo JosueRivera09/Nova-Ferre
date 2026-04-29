@@ -1,7 +1,9 @@
 import 'dart:ui';
-import 'package:nova_ferre/nova_ferre_exports.dart';
+import 'package:nova_ferre/ui/main/nova_ferre_exports.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'responsive_design/main_desktop_layout.dart';
+import 'responsive_design/main_mobile_layout.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -65,7 +67,6 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   Widget build(BuildContext context) {
     final navProvider = context.watch<NavigationProvider>();
-    final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     const barColor = Color(0xFF2C3136);
     const accentColor = Color(0xFFE6683C);
@@ -76,52 +77,31 @@ class _MainLayoutState extends State<MainLayout> {
         if (didPop) return;
         navProvider.setIndex(0);
       },
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF5F7F9),
-        body: Row(
-          children: [
-            if (isDesktop) _buildSidebar(navProvider, barColor),
-            Expanded(
-              child: Column(
-                children: [
-                  _buildHeader(
-                    navProvider,
-                    isDesktop,
-                    barColor,
-                    _activeOverlay,
-                  ),
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        IgnorePointer(
-                          ignoring: isDesktop && _activeOverlay != null,
-                          child: IndexedStack(
-                            index: navProvider.currentIndex,
-                            children: _views,
-                          ),
-                        ),
-                        if (isDesktop && _activeOverlay != null)
-                          _buildBlurOverlay(),
-                        if (isDesktop && _activeOverlay != null)
-                          Align(
-                            alignment: Alignment.topRight,
-                            child: SidePanelOverlay(
-                              title: _activeOverlay!,
-                              onClose: () =>
-                                  setState(() => _activeOverlay = null),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        bottomNavigationBar: !isDesktop
-            ? _buildMobileNav(navProvider, barColor, accentColor)
-            : null,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth >= 900;
+
+          final bodyContent = IndexedStack(
+            index: navProvider.currentIndex,
+            children: _views,
+          );
+
+          if (isDesktop) {
+            return MainDesktopLayout(
+              sidebar: _buildSidebar(navProvider, barColor),
+              header: _buildHeader(navProvider, isDesktop, barColor, _activeOverlay),
+              bodyContent: bodyContent,
+              activeOverlay: _activeOverlay,
+              onCloseOverlay: () => setState(() => _activeOverlay = null),
+            );
+          }
+
+          return MainMobileLayout(
+            header: _buildHeader(navProvider, isDesktop, barColor, _activeOverlay),
+            bodyContent: bodyContent,
+            bottomNav: _buildMobileNav(navProvider, barColor, accentColor),
+          );
+        },
       ),
     );
   }
@@ -257,10 +237,10 @@ class _MainLayoutState extends State<MainLayout> {
               final prefs = await SharedPreferences.getInstance();
               await prefs.remove('saved_id');
               await prefs.remove('saved_pin');
-              
+
               if (!context.mounted) return;
               context.read<AuthProvider>().logout();
-              
+
               // Navegar al Login limpiando el stack
               Navigator.pushAndRemoveUntil(
                 context,
@@ -275,17 +255,6 @@ class _MainLayoutState extends State<MainLayout> {
     );
   }
 
-  Widget _buildBlurOverlay() {
-    return Positioned.fill(
-      child: GestureDetector(
-        onTap: () => setState(() => _activeOverlay = null),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-          child: Container(color: Colors.black.withValues(alpha: 0.05)),
-        ),
-      ),
-    );
-  }
 
   Widget _buildMobileNav(
     NavigationProvider nav,

@@ -1,4 +1,4 @@
-import 'package:nova_ferre/nova_ferre_exports.dart';
+import 'package:nova_ferre/ui/main/nova_ferre_exports.dart';
 
 class LogisticsProvider extends ChangeNotifier {
   final _supabase = Supabase.instance.client;
@@ -15,7 +15,9 @@ class LogisticsProvider extends ChangeNotifier {
     try {
       final response = await _supabase
           .from('logistica')
-          .select('*, ventas(cliente_nombre, fecha_venta, total, detalle_ventas(cantidad, productos(nombre_articulo)))')
+          .select(
+            '*, ventas(cliente_nombre, fecha_venta, total, detalle_ventas(cantidad, productos(nombre_articulo)))',
+          )
           .eq('estado_entrega', 'Pendiente')
           .order('id_despacho', ascending: false);
 

@@ -1,4 +1,4 @@
-import 'package:nova_ferre/nova_ferre_exports.dart';
+import 'package:nova_ferre/ui/main/nova_ferre_exports.dart';
 
 class DashboardProvider extends ChangeNotifier {
   final _supabase = Supabase.instance.client;
@@ -19,13 +19,17 @@ class DashboardProvider extends ChangeNotifier {
     try {
       // 1. Total Ventas Hoy
       final today = DateTime.now();
-      final startOfDay = DateTime(today.year, today.month, today.day).toIso8601String();
-      
+      final startOfDay = DateTime(
+        today.year,
+        today.month,
+        today.day,
+      ).toIso8601String();
+
       final ventasResp = await _supabase
           .from('ventas')
           .select('total')
           .gte('fecha_venta', startOfDay);
-          
+
       double totalHoy = 0.0;
       for (var v in (ventasResp as List)) {
         totalHoy += (v['total'] as num).toDouble();
@@ -36,7 +40,7 @@ class DashboardProvider extends ChangeNotifier {
           .from('logistica')
           .select('id_despacho')
           .eq('estado_entrega', 'Pendiente');
-      
+
       final pendientes = (logResp as List).length;
 
       // 3. Productos Bajo Stock
@@ -45,7 +49,7 @@ class DashboardProvider extends ChangeNotifier {
           .select('id_producto')
           .lte('stock', 5)
           .eq('estado_activo', true);
-          
+
       final bajoStock = (stockResp as List).length;
 
       _metrics = {

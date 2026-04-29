@@ -1,4 +1,6 @@
-import 'package:nova_ferre/nova_ferre_exports.dart';
+import 'package:nova_ferre/ui/main/nova_ferre_exports.dart';
+import 'responsive_design/dashboard_desktop_layout.dart';
+import 'responsive_design/dashboard_mobile_layout.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -27,90 +29,65 @@ class _DashboardViewState extends State<DashboardView> {
         onRefresh: () => dash.fetchMetrics(),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Resumen General",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final kpiCards = [
+                _kpiCard(
+                  "Ventas de Hoy",
+                  "\$${(dash.metrics['total_hoy'] as num).toStringAsFixed(2)}",
+                  Icons.monetization_on,
+                  Colors.green,
+                ),
+                _kpiCard(
+                  "Stock Crítico",
+                  "${dash.metrics['bajo_stock']} Prod.",
+                  Icons.warning_amber_rounded,
+                  Colors.red,
+                ),
+                _kpiCard(
+                  "Por Despachar",
+                  "${dash.metrics['pendientes']} Pedidos",
+                  Icons.local_shipping,
+                  Colors.orange,
+                ),
+              ];
 
-              // Fila de Tarjetas (KPIs)
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: constraints.maxWidth > 600 ? 3 : 1,
-                    crossAxisSpacing: 15,
-                    mainAxisSpacing: 15,
-                    childAspectRatio: 2.5,
-                    children: [
-                      _kpiCard(
-                        "Ventas de Hoy",
-                        "\$${(dash.metrics['total_hoy'] as num).toStringAsFixed(2)}",
-                        Icons.monetization_on,
-                        Colors.green,
-                      ),
-                      _kpiCard(
-                        "Stock Crítico",
-                        "${dash.metrics['bajo_stock']} Prod.",
-                        Icons.warning_amber_rounded,
-                        Colors.red,
-                      ),
-                      _kpiCard(
-                        "Por Despachar",
-                        "${dash.metrics['pendientes']} Pedidos",
-                        Icons.local_shipping,
-                        Colors.orange,
-                      ),
-                    ],
-                  );
-                },
-              ),
+              final quickActions = [
+                _quickAction(
+                  context,
+                  "Nueva Venta",
+                  Icons.add_shopping_cart,
+                  const SalesView(),
+                ),
+                _quickAction(
+                  context,
+                  "Ver Inventario",
+                  Icons.inventory_2,
+                  const InventoryView(),
+                ),
+                _quickAction(
+                  context,
+                  "Logística",
+                  Icons.delivery_dining,
+                  const LogisticsView(),
+                ),
+              ];
 
-              const SizedBox(height: 30),
-              const Text(
-                "Acciones Rápidas",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 15),
+              final userManagementWidget = _buildUserManagement();
 
-              // Botonera de navegación rápida
-              Wrap(
-                spacing: 15,
-                runSpacing: 15,
-                children: [
-                  _quickAction(
-                    context,
-                    "Nueva Venta",
-                    Icons.add_shopping_cart,
-                    const SalesView(),
-                  ),
-                  _quickAction(
-                    context,
-                    "Ver Inventario",
-                    Icons.inventory_2,
-                    const InventoryView(),
-                  ),
-                  _quickAction(
-                    context,
-                    "Logística",
-                    Icons.delivery_dining,
-                    const LogisticsView(),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 40),
-              const Text(
-                "Gestión de Usuarios",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 15),
-              _buildUserManagement(),
-            ],
+              if (constraints.maxWidth > 800) {
+                return DashboardDesktopLayout(
+                  kpiCards: kpiCards,
+                  quickActions: quickActions,
+                  userManagement: userManagementWidget,
+                );
+              }
+              return DashboardMobileLayout(
+                kpiCards: kpiCards,
+                quickActions: quickActions,
+                userManagement: userManagementWidget,
+              );
+            },
           ),
         ),
       ),
@@ -124,7 +101,10 @@ class _DashboardViewState extends State<DashboardView> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+          ),
         ],
       ),
       child: Row(
@@ -192,7 +172,10 @@ class _DashboardViewState extends State<DashboardView> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+          ),
         ],
       ),
       child: Column(
@@ -213,7 +196,7 @@ class _DashboardViewState extends State<DashboardView> {
                   backgroundColor: const Color(0xFFE6683C),
                   foregroundColor: Colors.white,
                 ),
-              )
+              ),
             ],
           ),
           const SizedBox(height: 15),
@@ -226,11 +209,13 @@ class _DashboardViewState extends State<DashboardView> {
               final user = userProv.users[index];
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: user.estadoUsuario ? const Color(0xFFF5F7F9) : Colors.red.withValues(alpha: 0.1),
+                  backgroundColor: user.estadoUsuario
+                      ? const Color(0xFFF5F7F9)
+                      : Colors.red.withValues(alpha: 0.1),
                   child: Text(
                     user.nombreCompleto.substring(0, 1),
                     style: TextStyle(
-                      fontWeight: FontWeight.bold, 
+                      fontWeight: FontWeight.bold,
                       color: user.estadoUsuario ? Colors.black87 : Colors.red,
                     ),
                   ),
@@ -238,7 +223,9 @@ class _DashboardViewState extends State<DashboardView> {
                 title: Text(
                   user.nombreCompleto,
                   style: TextStyle(
-                    decoration: user.estadoUsuario ? TextDecoration.none : TextDecoration.lineThrough,
+                    decoration: user.estadoUsuario
+                        ? TextDecoration.none
+                        : TextDecoration.lineThrough,
                     color: user.estadoUsuario ? Colors.black87 : Colors.grey,
                   ),
                 ),
@@ -280,7 +267,9 @@ class _DashboardViewState extends State<DashboardView> {
                 }
 
                 // Obtener el nombre del rol seleccionado
-                final rolData = userProv.roles.firstWhere((r) => r['id_rol'] == selectedRolId);
+                final rolData = userProv.roles.firstWhere(
+                  (r) => r['id_rol'] == selectedRolId,
+                );
                 final areaAsignada = rolData['nombre_rol'] as String;
 
                 final error = await userProv.addUser(
@@ -304,19 +293,27 @@ class _DashboardViewState extends State<DashboardView> {
                 children: [
                   TextField(
                     controller: nombreController,
-                    decoration: const InputDecoration(labelText: "Nombre Completo", prefixIcon: Icon(Icons.person)),
+                    decoration: const InputDecoration(
+                      labelText: "Nombre Completo",
+                      prefixIcon: Icon(Icons.person),
+                    ),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: pinController,
-                    decoration: const InputDecoration(labelText: "PIN (Contraseña)", prefixIcon: Icon(Icons.lock)),
+                    decoration: const InputDecoration(
+                      labelText: "PIN (Contraseña)",
+                      prefixIcon: Icon(Icons.lock),
+                    ),
                     keyboardType: TextInputType.number,
                     obscureText: true,
                   ),
                   const SizedBox(height: 15),
                   if (userProv.roles.isNotEmpty)
                     DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(labelText: "Rol del Usuario"),
+                      decoration: const InputDecoration(
+                        labelText: "Rol del Usuario",
+                      ),
                       value: selectedRolId,
                       items: userProv.roles.map((rol) {
                         return DropdownMenuItem<int>(
@@ -346,7 +343,9 @@ class _DashboardViewState extends State<DashboardView> {
 
     // Buscar el ID del rol actual en base a su nombre
     try {
-      final rolMatch = userProv.roles.firstWhere((r) => r['nombre_rol'] == user.rol);
+      final rolMatch = userProv.roles.firstWhere(
+        (r) => r['nombre_rol'] == user.rol,
+      );
       selectedRolId = rolMatch['id_rol'];
     } catch (_) {}
 
@@ -388,19 +387,27 @@ class _DashboardViewState extends State<DashboardView> {
                 children: [
                   TextField(
                     controller: nombreController,
-                    decoration: const InputDecoration(labelText: "Nombre Completo", prefixIcon: Icon(Icons.person)),
+                    decoration: const InputDecoration(
+                      labelText: "Nombre Completo",
+                      prefixIcon: Icon(Icons.person),
+                    ),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: pinController,
-                    decoration: const InputDecoration(labelText: "Nuevo PIN (Dejar vacío para no cambiar)", prefixIcon: Icon(Icons.lock)),
+                    decoration: const InputDecoration(
+                      labelText: "Nuevo PIN (Dejar vacío para no cambiar)",
+                      prefixIcon: Icon(Icons.lock),
+                    ),
                     keyboardType: TextInputType.number,
                     obscureText: true,
                   ),
                   const SizedBox(height: 15),
                   if (userProv.roles.isNotEmpty)
                     DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(labelText: "Rol del Usuario"),
+                      decoration: const InputDecoration(
+                        labelText: "Rol del Usuario",
+                      ),
                       value: selectedRolId,
                       items: userProv.roles.map((rol) {
                         return DropdownMenuItem<int>(
@@ -416,7 +423,10 @@ class _DashboardViewState extends State<DashboardView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text("Estado:", style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text(
+                        "Estado:",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       Switch(
                         value: estado,
                         onChanged: (val) {

@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:nova_ferre/nova_ferre_exports.dart';
+import 'package:nova_ferre/ui/main/nova_ferre_exports.dart';
 
 class SalesView extends StatefulWidget {
   const SalesView({super.key});
@@ -346,13 +346,23 @@ class _SalesViewState extends State<SalesView> {
 
             if (ok) {
               if (currentContext.mounted) {
-                currentContext.read<LogisticsProvider>().fetchPendingDeliveries();
+                currentContext
+                    .read<LogisticsProvider>()
+                    .fetchPendingDeliveries();
                 currentContext.read<DashboardProvider>().fetchMetrics();
-                CustomNotification.show(currentContext, "¡Venta finalizada y stock actualizado!", isSuccess: true);
+                CustomNotification.show(
+                  currentContext,
+                  "¡Venta finalizada y stock actualizado!",
+                  isSuccess: true,
+                );
               }
             } else {
               if (currentContext.mounted) {
-                CustomNotification.show(currentContext, "Error al procesar la venta", isSuccess: false);
+                CustomNotification.show(
+                  currentContext,
+                  "Error al procesar la venta",
+                  isSuccess: false,
+                );
               }
             }
           },

@@ -1,4 +1,4 @@
-import 'package:nova_ferre/nova_ferre_exports.dart';
+import 'package:nova_ferre/ui/main/nova_ferre_exports.dart';
 
 class CustomDialog extends StatelessWidget {
   final String title;
@@ -46,11 +46,7 @@ class CustomDialog extends StatelessWidget {
                     color: primaryColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    icon,
-                    size: 48,
-                    color: primaryColor,
-                  ),
+                  child: Icon(icon, size: 48, color: primaryColor),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -70,11 +66,7 @@ class CustomDialog extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Contenido dinámico
-                Flexible(
-                  child: SingleChildScrollView(
-                    child: content,
-                  ),
-                ),
+                Flexible(child: SingleChildScrollView(child: content)),
 
                 const SizedBox(height: 32),
 
@@ -127,7 +119,8 @@ class CustomDialog extends StatelessWidget {
                             : Text(
                                 confirmLabel,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                       ),
                     ),

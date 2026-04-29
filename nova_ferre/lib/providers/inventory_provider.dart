@@ -1,4 +1,4 @@
-import 'package:nova_ferre/nova_ferre_exports.dart';
+import 'package:nova_ferre/ui/main/nova_ferre_exports.dart';
 
 class InventoryProvider extends ChangeNotifier {
   final _supabase = Supabase.instance.client;
@@ -57,7 +57,10 @@ class InventoryProvider extends ChangeNotifier {
     }
   }
 
-  Future<String?> addCategory({required String nombre, required String prefijo}) async {
+  Future<String?> addCategory({
+    required String nombre,
+    required String prefijo,
+  }) async {
     try {
       _isLoading = true;
       notifyListeners();
@@ -75,14 +78,18 @@ class InventoryProvider extends ChangeNotifier {
     }
   }
 
-  Future<String?> updateCategory({required int idCategoria, required String nombre, required String prefijo}) async {
+  Future<String?> updateCategory({
+    required int idCategoria,
+    required String nombre,
+    required String prefijo,
+  }) async {
     try {
       _isLoading = true;
       notifyListeners();
-      await _supabase.from('categorias').update({
-        'nombre_categoria': nombre,
-        'prefijo': prefijo,
-      }).eq('id_categoria', idCategoria);
+      await _supabase
+          .from('categorias')
+          .update({'nombre_categoria': nombre, 'prefijo': prefijo})
+          .eq('id_categoria', idCategoria);
       await fetchCategories();
       return null;
     } catch (e) {
@@ -132,6 +139,7 @@ class InventoryProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
   Future<String?> updateProduct({
     required String id,
     required String nombre,

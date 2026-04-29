@@ -1,5 +1,7 @@
-import 'package:nova_ferre/nova_ferre_exports.dart';
+import 'package:nova_ferre/ui/main/nova_ferre_exports.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'responsive_design/login_desktop_layout.dart';
+import 'responsive_design/login_mobile_layout.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -47,7 +49,7 @@ class _LoginViewState extends State<LoginView> {
 
   void _handleLogin() async {
     // 1. Validación local
-    if (!_formKey.currentState!.validate()) return;
+    if (_formKey.currentState != null && !_formKey.currentState!.validate()) return;
 
     // 2. Estado de carga
     setState(() => _isLoading = true);
@@ -82,16 +84,16 @@ class _LoginViewState extends State<LoginView> {
       } else {
         // ERROR: Credenciales inválidas
         CustomNotification.show(
-          context, 
-          "ID o PIN incorrectos. Verifique sus datos.", 
+          context,
+          "ID o PIN incorrectos. Verifique sus datos.",
           isSuccess: false,
         );
       }
     } catch (e) {
       if (mounted) {
         CustomNotification.show(
-          context, 
-          "Error inesperado en el acceso", 
+          context,
+          "Error inesperado en el acceso",
           isSuccess: false,
         );
       }
@@ -102,99 +104,98 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF2C3136),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  // --- LOGOTIPOS ---
-                  Image.asset('assets/images/logoDarkPng.png', height: 100),
-                  const SizedBox(height: 10),
-                  Image.asset('assets/images/logoLetrasPng.png', width: 180),
-                  const SizedBox(height: 40),
+    final formWidget = Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // --- LOGOTIPOS ---
+          Image.asset('assets/images/logoDarkPng.png', height: 100),
+          const SizedBox(height: 10),
+          Image.asset('assets/images/logoLetrasPng.png', width: 180),
+          const SizedBox(height: 40),
 
-                  const Text(
-                    "Acceso al Sistema",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // --- INPUTS ---
-                  AuthInputField(
-                    controller: _idController,
-                    label: "ID de Usuario",
-                    icon: Icons.person_outline,
-                    keyboardType: TextInputType.number,
-                    validator: (v) => (v == null || v.length != 6)
-                        ? "Ingrese su código de 6 dígitos"
-                        : null,
-                  ),
-                  const SizedBox(height: 20),
-                  AuthInputField(
-                    controller: _pinController,
-                    label: "PIN de Seguridad",
-                    icon: Icons.lock_outline,
-                    isPassword: true,
-                    keyboardType: TextInputType.number,
-                    validator: (v) =>
-                        (v == null || v.length < 4) ? "Mínimo 4 dígitos" : null,
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  _buildRememberMe(),
-
-                  const SizedBox(height: 40),
-
-                  // --- BOTÓN DE ACCIÓN ---
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFE6683C),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: _isLoading ? null : _handleLogin,
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text(
-                              "INGRESAR",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
+          const Text(
+            "Acceso al Sistema",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
-        ),
+          const SizedBox(height: 30),
+
+          // --- INPUTS ---
+          AuthInputField(
+            controller: _idController,
+            label: "ID de Usuario",
+            icon: Icons.person_outline,
+            keyboardType: TextInputType.number,
+            validator: (v) => (v == null || v.length != 6)
+                ? "Ingrese su código de 6 dígitos"
+                : null,
+          ),
+          const SizedBox(height: 20),
+          AuthInputField(
+            controller: _pinController,
+            label: "PIN de Seguridad",
+            icon: Icons.lock_outline,
+            isPassword: true,
+            keyboardType: TextInputType.number,
+            validator: (v) =>
+                (v == null || v.length < 4) ? "Mínimo 4 dígitos" : null,
+          ),
+
+          const SizedBox(height: 15),
+
+          _buildRememberMe(),
+
+          const SizedBox(height: 40),
+
+          // --- BOTÓN DE ACCIÓN ---
+          SizedBox(
+            width: double.infinity,
+            height: 55,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE6683C),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: _isLoading ? null : _handleLogin,
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      "INGRESAR",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
       ),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth > 800) {
+          return LoginDesktopLayout(formWidget: formWidget);
+        }
+        return LoginMobileLayout(formWidget: formWidget);
+      },
     );
   }
 
